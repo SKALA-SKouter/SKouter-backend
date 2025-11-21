@@ -1,6 +1,6 @@
 # 🚀 SKouter 백엔드 프로젝트
 
-채용 정보 서비스를 위한 Spring Boot 백엔드 API 서버입니다. 이예에!
+채용 정보 서비스를 위한 Spring Boot 백엔드 API 서버입니다. 즐거운 금요일.
 
 ---
 
