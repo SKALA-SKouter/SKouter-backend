@@ -16,14 +16,13 @@ COPY . .
 RUN gradle clean build -x test --no-daemon
 
 # Stage 2: 실행 스테이지
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
 # 타임존 설정 (한국)
-RUN apk add --no-cache tzdata && \
-    cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
-    echo "Asia/Seoul" > /etc/timezone
+ENV TZ=Asia/Seoul
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # 빌드된 JAR 파일 복사
 COPY --from=builder /app/build/libs/*.jar app.jar
@@ -33,7 +32,7 @@ EXPOSE 8080
 
 # 헬스체크
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # 실행
 ENTRYPOINT ["java", \
