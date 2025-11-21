@@ -8,7 +8,6 @@ WORKDIR /app
 
 # Gradle 캐시를 위해 먼저 의존성만 다운로드
 COPY build.gradle settings.gradle ./
-COPY gradle ./gradle
 RUN gradle dependencies --no-daemon || true
 
 # 소스 코드 복사 및 빌드
