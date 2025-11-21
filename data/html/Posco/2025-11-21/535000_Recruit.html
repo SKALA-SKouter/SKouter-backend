@@ -1,0 +1,652 @@
+<!DOCTYPE html><html lang="ko" class="subPage" style="--vh: 10.8px;"><head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title></title>
+		<script src="static/js/homeInclude.js"></script><link type="text/css" rel="stylesheet" href="static/css/jquery-ui.css"><link type="text/css" rel="stylesheet" href="static/css/jquery-ui.theme.css"><link rel="preconnect" href="https://fonts.gstatic.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;display=swap"><link type="text/css" rel="stylesheet" href="static/css/swiper.min.css"><link type="text/css" rel="stylesheet" href="static/css/style.pc.css?meta=20240325"><link type="text/css" rel="stylesheet" href="static/css/common.pc.css?meta=20231012"><link type="text/css" rel="stylesheet" href="static/css/pc/terms.css?meta=20231012"><script type="text/javascript" src="static/vendor/ie11CustomProperties.js?meta=20231012"></script><script type="text/javascript" src="static/js/jquery-1.12.4.min.js"></script><script type="text/javascript" src="static/js/jquery-ui-1.12.1.custom.js"></script><script type="text/javascript" src="static/js/jquery.blockUI.js"></script><script type="text/javascript" src="static/vendor/gsap.min.js"></script><script type="text/javascript" src="static/vendor/swiper.min.js"></script><script type="text/javascript" src="static/vendor/ScrollMagic.min.js"></script><script type="text/javascript" src="static/vendor/debug.addIndicators.min.js"></script><script type="text/javascript" src="static/vendor/animation.gsap.min.js"></script><script type="text/javascript" src="static/js/datepicker-ko.js"></script><script type="text/javascript" src="static/js/custom.js?meta=20231012"></script><script type="text/javascript" src="static/js/script.js?meta=20231012"></script><script type="text/javascript" src="static/js/h22-common.js?meta=20231012"></script><script type="text/javascript" src="static/js/common.pc.js?meta=20231012"></script><script type="text/javascript" src="static/js/stickyfill.min.js"></script>
+		<script>
+			var preview = h22Common.nvl(h22Common.getParameterByName("preview"));
+			var uid, type, applCnt, internYn;
+			
+			var _obj = {
+				setEventHandler : function() {
+					$(document).on("click", "#btnList", _obj.fn.goList);
+					$(document).on("click", "#btnAppl", _obj.fn.goAppl);
+		        },
+		        
+				fn : {
+					initPage : function() {
+						_obj.fn.getData();
+	                },
+					
+					getData : function() {
+						$("#HR_AFTC_MRG_ADOP_NTIC_ID").val(h22Common.nvl(h22Common.getParameterByName("id")));
+						type = h22Common.nvl(h22Common.getParameterByName("type"));
+						h22Common.submitAjax(
+							"/H22A1000/find"
+							, "GET"
+							, "json"
+							, $("#searchForm").serializeObject()
+							, true
+							, function(res) {
+								// 마감공고 지원불가
+								if (res.APPL_YN == "Y") {
+									$("#btnAppl").show();
+								} 
+								uid = res.USER_ID;
+								for (key in res) {
+									if (key == "DDAY") {										
+										$("#DDAY").html("D-"+res.DDAY);	
+										if (res.DDAY == 0) {
+											$("#ddayNoti").show();
+										}
+									} else {
+										$("#"+key).html(res[key]);	
+									}
+	                            }
+	                            if (res.HR_AFTC_MRG_ADOP_NTIC_SUJX.length > 60) {
+									$("#HR_AFTC_MRG_ADOP_NTIC_SUJX").attr("title", res.HR_AFTC_MRG_ADOP_NTIC_SUJX);
+								}
+	                            
+	                            //본문처리
+								//REPORT_FLAG N:이미지, Y:컨텐츠
+								if (res.REPORT_FLAG == "N") {
+									$("#MAIN_CONTENTS").html("<img src='"+res.ATTC_FILE_NM+"' style='width:100%' />");
+								} else {
+									$("#MAIN_CONTENTS").html(res.DOC_CONT);
+								}
+								applCnt = res.APPL_CNT;
+								$("#GCS_COMP_CODE").val(res.GCS_COMP_CODE);
+								
+								//인턴평가 처리
+								if(res.INTERN_NTIC_ID !== null && res.INTERN_NTIC_ID !== ''){
+									internYn = 'Y';
+								}
+	                        }
+		                );
+					}, 
+					
+					goList : function () {
+						if (type == "S") {
+							location.href = "H22A1600.html";
+						} else {
+							location.href = "H22A1000.html";	
+						}
+					},
+					
+					goAppl : function () {
+						// 중복지원 금지
+						
+						if (applCnt > 0) {							
+							if(confirm("이미 지원한 공고입니다. 지원 현황 페이지로 이동 하시겠습니까?")) {
+								location.href = "H22A6010.html";
+							}			
+						}else{
+							if (uid != "") {
+								if( "30" != +$("#GCS_COMP_CODE").val()){
+									location.href = "H22A1420.html?id="+$("#HR_AFTC_MRG_ADOP_NTIC_ID").val();								
+								}else{
+									location.href = "H22A1421.html?id="+$("#HR_AFTC_MRG_ADOP_NTIC_ID").val();								
+								}
+							} else {
+								alert("로그인 후 이용가능합니다.");
+							}
+						}
+					}
+				},
+	
+				init : function() {
+					_obj.setEventHandler();
+					_obj.fn.initPage();
+				}
+			};
+	
+			$(function() {
+				if (preview == "Y") {
+					$("#location, #headline").hide();
+					_obj.fn.initPage();
+				} else {
+					h22Common.getHomeHeader();
+					h22Common.getHomeFooter();
+					_obj.init();
+				}
+			});
+			
+			function copyUrl() {
+				var url = window.document.location.href;
+				$("#CURURL").val(url);
+				var curUrl = $('#CURURL');
+				curUrl.css('display', 'block').select();
+				document.execCommand("Copy");
+				curUrl.css('display', 'none');
+				alert('URL 주소가 복사 되었습니다');
+				return false;
+			}
+		</script>
+    </head>
+    <body style="">
+		<div id="wrap"><header id="header" class="bg_white"><script>
+	$(function () {
+		var page = location.href;
+		page = page.substring(page.lastIndexOf("/") + 1, page.lastIndexOf(".") - 1);
+		if (page == "H22A600" || page == "H22A142") {
+			$("#gnb").hide();
+		} else {
+			/* GNB depth1로 화면이동 직후의 hover상태에서는 하위메뉴 열림을 막는다. */
+			$gnb = $("#gnb");
+			$("body").bind("mouseover.forGnb", function (e) {
+				$gnb.toggleClass("disabled");
+				if (!$gnb.hasClass("disabled")) {
+					$(this).unbind("mouseover.forGnb");
+				}
+			});
+
+			$gnb.find("li").removeClass("active");
+
+			$("#gnb > nav > ul > li > ul > li").each(function (index, item) {
+				if ($(item).children("a").attr("href").indexOf(page) > -1) {
+					$(item).closest("ul").parent().addClass("active");
+				}
+			});
+		}
+		h22Common.submitAjax(
+			'/H22A1000/findUser'
+			, "GET"
+			, "json"
+			, {}
+			, true
+			, function (res) {
+				if (res["USER_ID"]) {
+					$("#unm").html(res["USER_NAME"] + "<i>님 반가워요.</i>");
+					$(".rec_li").show();
+				} else {
+					$(".rec_lo").show();
+				}
+			}
+		);
+		h22Common.makeLocation();
+	});
+
+	function logout() {
+		var url = "/h22a01-recruit/H22Common/logout";
+		var $form = $('<form></form>');
+		$form.append("<input type='hidden' name='rtype' id='rtype' value='H' />");
+		$(document.body).append($form);
+		$form.attr("method", "post").attr("action", url).submit();
+	}
+</script>
+<style>
+	.rec_li,
+	.rec_lo {
+		display: none;
+	}
+</style>
+<!-- Header -->
+<div class="common_inner flex_b_c">
+	<h1 class="logo">
+		<a href="./H22AMain.html" class="flex"><span class="logo_img"></span>
+			<span class="logo_text">Recruit</span></a>
+	</h1>
+	<button class="menu_btn flex_c_c" aria-label="전체메뉴" onclick="gnbMenu();">
+		<div class="line">
+			<span class="line_01"></span>
+			<span class="line_02"></span>
+		</div>
+	</button>
+	<div class="util_menu">
+		<span class="rec_lo" style="display: inline;"><a href="./H22A0000.html"> LOGIN </a></span>
+		<!--<span class="rec_li"><span class="login" id="unm"></span></span> &ensp;
+            <span class="rec_li"><a href="H22A0060.html" class="mypage">내정보</a></span> &nbsp;-->
+		<span class="rec_li"><a href="javascript:logout()" class="logout">LOGOUT</a></span>
+	</div>
+</div>
+<div class="wrap_dep2">
+	<div class="depth2 active"><ul>
+								<li><a href="./H22N1007.html">채용 프로세스</a></li>
+								<li class="active"><a href="./H22A1000.html">채용공고</a></li>
+								<li><a href="./H22A1310.html">공지사항</a></li>
+								<li><a href="./H22A1320.html">FAQ</a></li>
+								<li><a href="./H22N1010.html">인재 Pool 등록</a></li>
+							</ul></div>
+</div>
+<nav id="nav">
+	<div class="bg-pos" style="background-image: url(./static/img/common/bg_allmenu.jpg)"></div>
+	<div class="common_inner">
+		<aside class="menu_container">
+			<div class="depth1">
+				<ul class="flex__s flex_w">
+					<li data-page-name="about">
+						<a href="#!">About POSCO Group</a>
+						<div class="depth2">
+							<ul>
+								<li>
+									<a href="./H22N1002.html">경영비전 </a>
+								</li>
+								<!--
+								<li>
+									<a href="./H22N1003.html">기업시민 </a>
+								</li>
+								-->
+								<li><a href="./H22N1004.html">사업영역 </a></li>
+							</ul>
+						</div>
+					</li>
+					<li data-page-name="jobs">
+						<a href="#!">POSCO Jobs</a>
+						<div class="depth2">
+							<ul>
+								<li><a href="./H22N1008.html">직무소개</a></li>
+								<li>
+									<a href="./H22N1009.html">직무인터뷰</a>
+								</li>
+								<li><a href="./H22A1240.html">포스코人 스토리</a></li>
+							</ul>
+						</div>
+					</li>
+					<li data-page-name="life">
+						<a href="#!">POSCO Life</a>
+						<div class="depth2">
+							<ul>
+								<li><a href="./H22N1005.html">Careers</a></li>
+								<li><a href="./H22N1006.html">Benefit</a></li>
+							</ul>
+						</div>
+					</li>
+					<li data-page-name="apply">
+						<a href="#!">Apply</a>
+						<div class="depth2">
+							<ul>
+								<li><a href="./H22N1007.html">채용 프로세스</a></li>
+								<li><a href="./H22A1000.html">채용공고</a></li>
+								<li><a href="./H22A1310.html">공지사항</a></li>
+								<li><a href="./H22A1320.html">FAQ</a></li>
+								<li><a href="./H22N1010.html">인재 Pool 등록</a></li>
+							</ul>
+						</div>
+					</li>
+					<li data-page-name="recruit">
+						<a href="#!">MY 채용</a>
+						<div class="depth2">
+							<ul>
+								<li><a href="./H22A6010.html">지원현황</a></li>
+								<li><a href="./H22A6014.html">지원결과</a></li>
+								<li><a href="./H22A0060.html">나의정보</a></li>
+								<li><a href="./H22A1800.html">1:1문의</a></li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+			</div>
+		</aside>
+		<div class="sns_list flex">
+			<h4 class="sns_ttl">SNS채널</h4>
+			<ul class="flex__c">
+				<li>
+					<a href="https://www.instagram.com/hello_posco/ 
+                  " target="_blank"><img src="./static/img/common/ico_ist.png" alt="인스타그램"></a>
+				</li>
+				<li>
+					<a href="https://www.youtube.com/c/posco" target="_blank"><img src="./static/img/common/ico_ytb.png" alt="유튜브"></a>
+				</li>
+				<li>
+					<a href="https://www.facebook.com/HELLOPOSCO" target="_blank"><img src="./static/img/common/ico_fb.png" alt="페이스북"></a>
+				</li>
+			</ul>
+		</div>
+		<div class="btn_eagroup">
+			<div>
+				<a href="https://www.posco-inc.com:4453/poscoinc/v4/kor/" target="_blank">포스코 홀딩스
+					<i><img src="./static/img/common/ico_link.png" alt="바로가기 이미지"></i></a>
+			</div>
+			<div>
+				<a href="https://newsroom.posco.com/kr/" target="_blank">News Room
+					<i><img src="./static/img/common/ico_link.png" alt="바로가기 이미지"></i></a>
+			</div>
+		</div>
+	</div>
+</nav>
+<!-- Header -->
+
+<script>
+	$(document).ready(function () {
+		SetDepth2();
+		SubDepth2Active();
+		SetSubPageHtmlName();
+    HandleSubDepth3Click();
+    scrollAnimation();
+	HandleTopBtn();
+	})
+
+
+// 서브 페이지 일 경우 html에 클래스명 추가, 비지니스 페이지 클래스 추가 
+function SetSubPageHtmlName() {
+  const subPage = $("[id*='container']").hasClass("sub");
+
+  const businessPage = $("html").hasClass("businessPage");
+
+  if (subPage) {
+    $("html").addClass("subPage");
+    $("#header").addClass("bg_white");
+  }
+  if (businessPage) {
+    $("#header").addClass("bg_white");
+  }
+  $("[id*='container'].sub").css("opacity", "1");
+}
+
+// depth3클릭 이벤트
+	function HandleSubDepth3Click() {
+  const InterviewsPage = $("#common_container").hasClass("interviews");
+  const businessPage = $("html").hasClass("businessPage");
+  if (!InterviewsPage || !businessPage) {
+    $(".depth3_wrap button").on("click", function () {
+      const Text = $(this).text();
+      const breadcrumbItem = $(".breadcrumb-item.active");
+      breadcrumbItem.text(Text);
+      addRemove($(this));
+    });
+  }
+}
+
+	// 위로 가기 버튼 
+function HandleTopBtn() {
+  const isFullPage = $("html").hasClass("fp-enabled");
+
+  $(".btn_top_fix").on("click", function () {
+    if (isFullPage) {
+      fullpage_api.moveTo(1);
+      headerAni();
+    } else {
+      $("html, body").stop().animate({ scrollTop: 0 });
+    }
+    $(this).removeClass("show");
+  });
+}
+
+//컨텐츠 애니메이션
+	function scrollAnimation() {
+  var aniDiv = document.querySelectorAll(".ani_el");
+  var aniDivArry = [];
+  $(".first_ani *.ani_el").addClass("move");
+  Array.prototype.forEach.call(aniDiv, function (ele) {
+    aniDivArry.push(ele);
+  });
+
+  $(window).on("scroll", function () {
+    var scrollTop = $(window).scrollTop(),
+      windowH = ($(window).height() / 4) * 3;
+    var scrollBottom =
+      $(document).height() - $(window).height() - $(window).scrollTop();
+
+    if (scrollBottom <= 0) {
+      $(".ani_el").addClass("move");
+    }
+    // section animate
+    for (var i = 0; i < aniDivArry.length; i++) {
+      if ($(aniDivArry[i]).offset().top < scrollTop + windowH) {
+        $(aniDivArry[i]).addClass("move");
+        aniDivArry.splice(i, 1);
+      }
+    }
+  });
+}
+
+
+
+	function SetDepth2() {
+		const SetNavEl = $("#header .wrap_dep2 .depth2");
+		const GetNavEl = $("#nav .menu_container .depth1");
+		const containerName = $("[id*='container']").data("page-name");
+		const mainPage = $("[id*='container']").hasClass("main");
+
+		const FindEL = $(
+			'#nav .menu_container .depth1 li[data-page-name="' +
+			containerName +
+			'"] .depth2 ul'
+		);
+		const InputVal = FindEL.clone();
+		SetNavEl.html(InputVal);
+
+		if (
+			mainPage ||
+			containerName === null ||
+			containerName === undefined ||
+			containerName === ""
+		) {
+			$("#header .wrap_dep2").css("display", "none");
+			$("#header .wrap_dep2 .depth2").removeClass("active");
+		} else {
+			$("#header .wrap_dep2 .depth2").addClass("active");
+		}
+	}
+
+	function SubDepth2Active() {
+		const SetNavEl = $("#header .wrap_dep2 .depth2");
+		SetNavEl.find("a").each(function () {
+			let href = $(this).attr("href");
+			href = href.substring(2);
+			let pageUrl = window.location.href.split(/[?#]/)[0];
+			if (pageUrl.includes(href) === true) {
+				SetNavEl.find("li").removeClass("active");
+				$(this).parent("li").addClass("active");
+			} else if (pageUrl.includes('H22A6011') === true || pageUrl.includes('H22A6012') === true) {
+				$('.wrap_dep2 .depth2 li a[href="./H22A6010.html"]').closest('li').addClass('active');
+			} else if (pageUrl.includes('H22A1801') === true) {
+				$('.wrap_dep2 .depth2 li a[href="./H22A1800.html"]').closest('li').addClass('active');
+			} else if (pageUrl.includes('H22A1311') === true) {
+				$('.wrap_dep2 .depth2 li a[href="./H22A1310.html"]').closest('li').addClass('active');
+			} else if (pageUrl.includes('H22A1001') === true) {
+				$('.wrap_dep2 .depth2 li a[href="./H22A1000.html"]').closest('li').addClass('active');
+			} else if (pageUrl.includes('H22A0061') === true || pageUrl.includes('H22A0062') === true || pageUrl.includes('H22A0063') === true || pageUrl.includes('H22A0064') === true) {
+				$('.wrap_dep2 .depth2 li a[href="./H22A0060.html"]').closest('li').addClass('active')
+			}
+		});
+	}
+
+
+// Gnb Menu
+function gnbMenu() {
+  const isFullPage = $("html").hasClass("fp-enabled");
+  const StateOpenGnb = $("html").hasClass("openGnb");
+
+  if (!StateOpenGnb) {
+    if ($("#gnb_bg").length === 0) {
+      $("html").append('<div id="gnb_bg"></div>');
+    }
+    $("#nav .menu_container .depth1 > ul > li")
+      .off("mouseover")
+      .on("mouseover", function (e) {
+        addRemove($(this));
+      });
+    $("html").addClass("openGnb");
+    if (isFullPage) {
+      $("body").on("scroll touchmove mousewheel", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      });
+    }
+  } else {
+    $("html").removeClass("openGnb");
+    $("#gnb_bg").remove();
+    $("#header .menu_btn").focus();
+    if (isFullPage) {
+      $("body").off("scroll touchmove mousewheel");
+    }
+  }
+}
+
+
+</script></header>
+      		<div id="container" class="sub" data-page-name="apply" style="opacity: 1;">
+      		<div id="headline" class="c03"></div>	
+      		
+      		<ol class="breadcrumb inner flex_e_c">
+               <li class="breadcrumb-item home"><a href="#!">home</a></li>
+               <li class="breadcrumb-item"><a href="#!">Apply</a></li>
+               <li class="breadcrumb-item active"><a href="#!">채용공고</a></li>
+            </ol>
+      			
+			<!-- #container -->
+        		<!-- .inner -->
+        		<div class="inner">
+	        		<section id="content">
+						<h1>채용공고</h1>	              		
+						<form name="searchForm" id="searchForm" method="post" action="">
+							<input type="hidden" name="GCS_COMP_CODE" id="GCS_COMP_CODE" value="03">
+			    			<input type="hidden" name="HR_AFTC_MRG_ADOP_NTIC_ID" id="HR_AFTC_MRG_ADOP_NTIC_ID" value="535000">
+			    			<input type="text" name="CURURL" id="CURURL" value="" style="display:none;">
+						</form>
+			            
+			            <!-- .board-view -->
+            			<div class="board-view">
+            				<div class="head" style="min-height: 76px;">
+								<span class="title">
+									<h2 id="HR_AFTC_MRG_ADOP_NTIC_SUJX" style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 1136px;">서울지역 4대보험 및 연말정산 계약직 채용</h2>
+									<dl>
+										<dt>회사명</dt>
+										<dd id="COMPANY_NAME">포스코휴먼스</dd>
+										<dt>유형</dt>
+										<dd id="HR_AFTC_MRG_ADOP_CLTA_TP_TP_NM">신입사원</dd>
+										<dt>전형기간</dt>
+										<dd>
+											<span id="ACTIVE_DATE">2025-11-18(화) 14:00 ~ 2025-11-24(월) 20:00</span> 
+											<span class="d-day" id="DDAY">D-3</span>
+											<span class="d-day day0" id="ddayNoti" style="display:none;">오늘마감</span>
+										</dd>
+									</dl>
+								</span>
+								<span class="util">
+									<span class="">
+										<button type="button" class="share" onclick="copyUrl()">공유</button>
+									</span>
+								</span>
+							</div>
+							<div class="body">
+								<!-- 이미지폭은 최대 1136px입니다. -->
+                				<div class="content" id="MAIN_CONTENTS"><p style="font-family: 굴림; font-size: 12pt; line-height: 1.2; margin-top: 0px; margin-bottom: 0px; text-align: center;">&nbsp;</p><p style="font-family: 굴림; font-size: 12pt; line-height: 1.2; margin-top: 0px; margin-bottom: 0px; text-align: center;"><img src="https://recruit.posco.com/h22a01-front/images/dext5editordata/2025/11/20251118_133657646_41520.png" style="width: 853px; height: 1885px;"><br></p><p style="font-family: 굴림; font-size: 12pt; line-height: 1.2; margin-top: 0px; margin-bottom: 0px; text-align: center;">&nbsp;</p><p style="font-family: 굴림; font-size: 12pt; line-height: 1.2; margin-top: 0px; margin-bottom: 0px; text-align: center;">&nbsp;</p></div>
+							</div>
+            			</div>
+            			<!-- //.board-view -->
+            			
+			            <div class="button-group bottom" style="justify-content: center">
+			              	<a href="#n" class="btn-lg btn-secondary" id="btnList">목록</a>
+			              	<a href="#n" class="btn-lg btn-primary" id="btnAppl" style=""><span>지원하기</span></a>
+			            </div>						
+					</section>
+		          	<!-- //#content section -->
+				</div>
+        		<!-- //.inner -->
+      		</div>
+      		<!-- //#container -->
+      		
+			<button type="button" class="btn_top_fix" aria-label="맨위로 올라가기" style="bottom: 60px;">
+				<img src="./static/img/common/top_btn.png" alt="위 화살표">
+			</button>
+    	<footer id="footer"><!--
+/*===============================================
+*Copyright(c) 2021 POSCO/POSCOICT
+*
+*@ProcessChain  	: H22
+*@File          	: homefooter.html
+*@FileName      	: 페이지 footer 영역 (홈Page)
+*
+*Change history
+*@LastModifier : KSJ
+*@수정 날짜;		SCR_NO;		수정자;		수정내용
+* 2022-02-03;	V1.0;		KSJ;		최초
+===============================================*/ 
+-->
+<script>
+	$(function () {
+		var params = {
+			StandardEnglishId : "FOOTER"
+		};
+		h22Common.submitAjax(
+			'/H22Common/selectCodes'
+			, "POST"
+			, "json"
+			, JSON.stringify(params)
+			, true
+			, function(res) {
+				if(res && res["FOOTER"]) {
+					$("#link_instagram").attr("href", res.FOOTER[0].CD_EXPL3);
+					$("#link_youtube").attr("href", res.FOOTER[0].CD_EXPL4);
+					$("#link_facebook").attr("href", res.FOOTER[0].CD_EXPL5);
+					$("address").html(res.FOOTER[0].CD_EXPL1);
+					$(".contact").find("i").html(res.FOOTER[0].CD_EXPL2);
+				}
+			}
+		);
+	});
+</script>
+	<!--<div class="inner">
+		<ul class="global">
+			<li><a href="H22A1420P05.html" class="map" onclick="openModal(this.href); return false;">이용약관</a></li>
+			<li><a href="H22A1420P06.html" class="map" onclick="openModal(this.href); return false;">개인정보취급방침</a></li>
+			<li><a href="H22A1420P07.html" class="map" onclick="openModal(this.href); return false;">이메일무단수집거부</a></li>
+		</ul>
+		<ul class="sns">
+			<li><a href="#n" class="ig" id="link_instagram" target="_blank">인스타그램</a></li>
+			<li><a href="#n" class="yt" id="link_youtube" target="_blank">유튜브</a></li>
+			<li><a href="#n" class="fb" id="link_facebook" target="_blank">페이스북</a></li>
+		</ul>-->
+		<!-- 
+		<select class="family">
+			<option>포스코그룹 계열사</option>
+			<option>PNR</option>
+			<option>SNNC</option>
+			<option>포스코</option>
+			<option>포스코A&C</option>
+			<option>포스코HY클린메탈</option>
+			<option>포스코ICT</option>
+			<option>포스코강판</option>
+			<option>포스코건설</option>
+			<option>포스코경영연구소</option>
+			<option>포스코리튬솔루션</option>
+			<option>포스코에너지</option>
+			<option>포스코엠텍</option>
+			<option>포스코인터내셔널</option>
+			<option>포스코케미칼</option>
+			<option>포스코플랜텍</option>
+			<option>포스코휴먼스</option>
+		</select>
+		-->
+	<!--	<span class="contact">
+			<address></address>
+			<i></i>
+		</span>
+		<span class="copyright">COPYRIGHT© 2021 POSCO GROUP ALL RIGHTS RESERVED.</span>
+	</div>-->
+	
+	
+	<!-- footer start -->
+        <div class="common_inner">
+          <div class="info_foot">
+            <ul class="f_menu flex__c">
+              <li>
+                <a href="H22A1420P05.html" target="_blank" onclick="openModal(this.href); return false;">이용약관</a>
+              </li>
+              <li>
+                <a href="H22A1420P06.html" target="_blank" onclick="openModal(this.href); return false;"><strong>개인정보처리방침</strong></a>
+              </li>
+
+              <li>
+                <a href="H22A1420P07.html" target="_blank" onclick="openModal(this.href); return false;">이메일주소무단수집거부</a>
+              </li>
+            </ul>
+            <div class="address">
+              <span>(우)37859 경상북도 포항시 남구 동해안로 6261 (포항시 남구 괴동동1)</span>
+              <!-- <span>대표전화: 054-220-0114, 02-3457-0114</span> -->
+              <span class="copyright">COPYRIGHT© 2021 POSCO GROUP ALL RIGHTS RESERVED.</span>
+            </div>
+          </div>
+        </div>
+      <!-- Footer end -->
+</footer></div>
+    	<!-- //#wrap -->
+    
+</body></html>

@@ -1,0 +1,126 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crawler-agent"
+version = "1.0.0"
+description = "LangGraph-based multi-company job posting crawler system"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Development Team", email = "dev@example.com"},
+]
+keywords = ["crawler", "langgraph", "agent", "web-scraping", "job-posting"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries",
+]
+
+dependencies = [
+    "langgraph>=0.1.0",
+    "langchain>=0.1.0",
+    "langchain-core>=0.1.0",
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.2",
+    "selenium>=4.15.2",
+    "webdriver-manager>=4.0.1",
+    "pdfplumber>=0.10.3",
+    "pypdf>=3.17.1",
+    "boto3>=1.28.85",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.5.0",
+    "typing-extensions>=4.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    "pytest-cov>=4.1.0",
+    "black>=23.12.0",
+    "flake8>=6.1.0",
+    "mypy>=1.7.1",
+    "isort>=5.13.0",
+]
+s3 = [
+    "boto3>=1.28.85",
+    "botocore>=1.31.85",
+]
+all = [
+    "crawler-agent[dev,s3]",
+]
+
+[project.urls]
+Homepage = "https://github.com/example/crawler-agent"
+Documentation = "https://github.com/example/crawler-agent#readme"
+Repository = "https://github.com/example/crawler-agent.git"
+Issues = "https://github.com/example/crawler-agent/issues"
+
+[project.scripts]
+crawler = "main:main"
+
+[tool.setuptools]
+packages = ["crawlers", "agents", "tests"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["crawlers", "agents"]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
