@@ -1,25 +1,108 @@
-# Gradle
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-
 # IDE
-.idea
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
 *.iml
-*.ipr
-*.iws
-.vscode
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.history
+
+# Build
+target/
+build/
+out/
+.gradle/
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Test Coverage
+coverage/
+.coverage
+*.cover
+.pytest_cache/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vscode-test
+.history
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 
-# Compiled
-bin/
-out/
-target/
+# Spring Boot
+application-*.yml
+application-*.yaml
 
-# Logs
-*.log
+# Database
+*.db
+*.sqlite
+*.sqlite3
+mariadb_data/
 
-# Environment
-.env
+# Cache
+.cache/
+*.cache
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# IDE Settings
+.editorconfig
+.prettierignore
+
+# Package managers
+package-lock.json
+yarn.lock
+Pipfile.lock
+
+# Python
+dist/
+build/
+*.egg-info/
+.eggs/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# Frontend Build
+node_modules/
+dist/
+build/
+
+# Docker
+docker-compose.override.yml
