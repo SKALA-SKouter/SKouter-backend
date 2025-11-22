@@ -85,7 +85,6 @@ temp/
 .prettierignore
 
 # Package managers
-package-lock.json
 yarn.lock
 Pipfile.lock
 
