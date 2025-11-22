@@ -1,6 +1,9 @@
-# 🚀 SKouter 백엔드 프로젝트.
+# 🚀 SKouter 백엔드 프로젝트
 
-채용 정보 서비스를 위한 Spring Boot 백엔드 API 서버입니다. 즐거운 금요일.
+채용 정보 서비스를 위한 멀티-백엔드 시스템입니다.
+
+- **Spring Boot** (Java) - REST API 서버
+- **FastAPI** (Python) - AI 분석 서버
 
 ---
 
@@ -32,15 +35,37 @@
 
 ## 🛠 기술 스택
 
+### 백엔드 (Spring Boot)
+
 | 분류 | 기술 |
 |------|------|
 | **언어** | Java 17 |
 | **프레임워크** | Spring Boot 3.5.7 |
-| **빌드 도구** | Gradle |
-| **데이터베이스** | MariaDB |
-| **캐시** | Redis |
+| **빌드 도구** | Gradle 8.10 |
+| **데이터베이스** | MariaDB 10.x |
+| **캐시** | Redis (Port 16379) |
 | **인증** | JWT (JSON Web Token) |
 | **API 문서** | Swagger/OpenAPI |
+| **ORM** | Spring Data JPA |
+| **검색** | Qdrant (Vector DB) |
+
+### AI 분석 서버 (FastAPI)
+
+| 분류 | 기술 |
+|------|------|
+| **언어** | Python 3.10+ |
+| **프레임워크** | FastAPI 0.104+ |
+| **패키지 관리** | uv / pyproject.toml |
+| **서버** | Uvicorn |
+| **설정** | Pydantic Settings |
+
+### 공통 인프라
+
+| 분류 | 기술 |
+|------|------|
+| **컨테이너** | Docker & Docker Compose |
+| **버전 관리** | Git |
+| **협업** | GitHub |
 
 ---
 
@@ -50,11 +75,28 @@
 
 컴퓨터에 다음 프로그램이 설치되어 있어야 합니다:
 
-- **Java 17** ([다운로드](https://adoptium.net/))
-- **MariaDB** ([다운로드](https://mariadb.org/download/))
-- **Git** ([다운로드](https://git-scm.com/))
+#### 공통
 
-> 💡 **확인 방법**: 터미널에서 `java -version` 입력 시 17 버전이 나와야 합니다.
+- **Git** ([다운로드](https://git-scm.com/))
+- **Docker & Docker Compose** ([다운로드](https://www.docker.com/products/docker-desktop))
+
+#### Spring Boot 개발 (Java)
+
+- **Java 17** ([다운로드](https://adoptium.net/))
+- **Gradle 8.10+** (자동 설치됨)
+
+#### FastAPI 개발 (Python)
+
+- **Python 3.10+** ([다운로드](https://www.python.org/downloads/))
+- **uv** (Python 패키지 관리자) - 또는 pip 사용
+
+> 💡 **확인 방법**
+>
+> ```bash
+> java -version        # 17 버전 확인
+> python --version    # 3.10+ 버전 확인
+> docker --version    # Docker 설치 확인
+> ```
 
 ---
 
@@ -70,9 +112,51 @@ cd SKouter-backend
 
 ---
 
-### 3️⃣ 데이터베이스 설정
+### 3️⃣ 환경 설정
 
-#### MariaDB 데이터베이스 생성
+#### 환경 변수 파일 생성
+
+루트 디렉토리에서 `.env.example`을 복사하여 `.env` 파일을 생성하세요:
+
+```bash
+cp .env.example .env
+```
+
+`.env` 파일을 열어서 필요한 값을 설정하세요:
+
+```env
+# Spring Boot (Java)
+SPRING_DATASOURCE_USERNAME=root
+SPRING_DATASOURCE_PASSWORD=your_password
+SPRING_DATASOURCE_URL=jdbc:mariadb://localhost:3306/skouter
+SPRING_REDIS_HOST=localhost
+SPRING_REDIS_PORT=16379
+JWT_SECRET_KEY=your-secret-key-change-this-in-production
+
+# FastAPI (Python)
+DATABASE_URL=mariadb://root:your_password@localhost:3306/skouter
+REDIS_URL=redis://localhost:16379
+```
+
+#### Docker Compose로 데이터베이스 시작 (권장)
+
+```bash
+# 루트 디렉토리에서 Docker 서비스 시작
+docker-compose up -d
+
+# 서비스 상태 확인
+docker-compose ps
+```
+
+이 명령어는 다음 서비스를 자동으로 시작합니다:
+
+- **MariaDB** (포트 3306)
+- **Redis** (포트 16379)
+- **Qdrant Vector DB** (포트 6333)
+
+#### 수동으로 MariaDB 설정 (선택)
+
+Docker를 사용하지 않는 경우:
 
 ```bash
 # MariaDB 접속
@@ -85,123 +169,242 @@ CREATE DATABASE skouter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 exit;
 ```
 
-#### DB 연결 정보 수정 (선택)
-
-`src/main/resources/application.yml` 파일을 열어서 비밀번호를 수정하세요:
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:mariadb://localhost:3306/skouter
-    username: root
-    password: 여기에_본인_비밀번호_입력  # 👈 수정
-```
-
 ---
 
 ### 4️⃣ 프로젝트 실행
+
+이 프로젝트는 두 개의 백엔드 서비스로 구성되어 있습니다. 각각 독립적으로 또는 함께 실행할 수 있습니다.
+
+#### Spring Boot 백엔드 (Java) 실행
 
 ```bash
 # 실행 권한 부여 (Mac/Linux, 최초 1회만)
 chmod +x gradlew
 
 # 빌드 (처음에는 시간이 좀 걸립니다)
-./gradlew build
+./gradlew clean build
 
 # 서버 실행
 ./gradlew bootRun
-```
 
-#### Windows 사용자
-```bash
+# Windows 사용자
 gradlew.bat bootRun
 ```
+
+Spring Boot 서버는 [http://localhost:8080](http://localhost:8080) 에서 실행됩니다.
+
+#### FastAPI 백엔드 (Python) 실행
+
+```bash
+# backend-ai 디렉토리로 이동
+cd backend-ai
+
+# 의존성 설치 (처음 1회만)
+uv pip install -r requirements.txt
+# 또는
+pip install -r requirements.txt
+
+# 서버 실행
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+FastAPI 서버는 [http://localhost:8000](http://localhost:8000) 에서 실행됩니다.
+
+#### 두 서비스 모두 실행 (선택)
+
+터미널을 두 개 띄우고 각각 위의 명령어를 실행하세요.
 
 ---
 
 ### 5️⃣ 실행 확인
 
+#### Spring Boot 서버 확인
+
 브라우저에서 다음 주소를 열어보세요:
 
-- **헬스체크**: http://localhost:8080/actuator/health
-- **API 문서**: http://localhost:8080/swagger-ui.html
+- **헬스체크**: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
+- **API 문서**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
 ✅ `{"status":"UP"}` 메시지가 나오면 성공!
+
+#### FastAPI 서버 확인
+
+브라우저에서 다음 주소를 열어보세요:
+
+- **자동 문서**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **대체 문서**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+✅ Swagger UI 또는 ReDoc이 표시되면 성공!
 
 ---
 
 ## 📁 프로젝트 구조 이해하기
 
-### 전체 구조 (비유로 이해하기)
+### 전체 프로젝트 구조
 
-Spring Boot 프로젝트는 **레스토랑**이라고 생각하면 쉽습니다:
+이 프로젝트는 **모노레포(Monorepo)** 구조로 되어 있습니다:
 
 ```
-레스토랑 (Spring Boot)
-├── 홀 (Controller)        👉 손님(프론트엔드)의 주문을 받는 곳
-├── 주방 (Service)         👉 실제 요리(비즈니스 로직)를 하는 곳
-├── 창고 (Repository)      👉 재료(데이터)를 보관하는 곳
-├── 재료 목록 (Entity)      👉 DB 테이블과 1:1 매칭
-├── 주문서 (DTO)           👉 손님과 주고받는 데이터 양식
-└── 규칙 (Config)          👉 레스토랑 운영 규칙
+SKouter-backend/                     # 루트 디렉토리
+├── backend-core/                    # Spring Boot (Java) 백엔드
+│   ├── src/main/java/               # Java 소스 코드
+│   │   └── com/skouter/recruitai/   # 메인 패키지
+│   ├── src/main/resources/          # 설정 파일 (application.yml)
+│   └── src/test/                    # 테스트 코드
+│
+├── backend-ai/                      # FastAPI (Python) AI 분석 서버
+│   ├── app/                         # FastAPI 메인 앱
+│   │   ├── main.py
+│   │   ├── core/
+│   │   └── api/
+│   ├── requirements.txt             # Python 의존성
+│   └── tests/                       # 테스트 코드
+│
+├── build.gradle                     # Java Gradle 설정
+├── settings.gradle                  # Gradle 프로젝트 설정
+├── pyproject.toml                   # Python 패키지 설정
+├── docker-compose.yml               # Docker 서비스 정의
+├── .env.example                     # 환경 변수 템플릿
+├── README.md                        # 프로젝트 설명 (이 파일)
+└── gradle/                          # Gradle Wrapper
+    └── wrapper/
+```
+
+### Spring Boot 백엔드 구조
+
+Spring Boot 프로젝트는 **회사 조직**이라고 생각하면 쉽습니다:
+
+```
+회사 조직 (Spring Boot)
+├── 각 부서 (Domain)       👉 인증, 사용자, 회사, 공고, AI 등 비즈니스 단위
+│   ├── Controller         👉 고객 응대 부분
+│   ├── Service            👉 실제 업무 수행
+│   ├── Repository         👉 데이터 관리
+│   ├── Entity             👉 데이터 구조
+│   └── DTO                👉 고객과 주고받는 서류
+├── Config                 👉 회사 운영 규칙
+└── Global                 👉 회사 전사적 규칙
 ```
 
 ---
 
-### 폴더별 역할
+### Spring Boot 도메인별 역할
 
-#### 📂 `src/main/java/com/example/demo/`
+#### 📂 `backend-core/src/main/java/com/skouter/recruitai/`
 
 ```
-demo/
-├── config/              🔧 설정 파일들
-│   ├── CorsConfig.java         프론트엔드 연결 허용
-│   ├── JwtConfig.java          로그인 토큰 설정
-│   ├── RedisConfig.java        캐시 설정
-│   ├── SwaggerConfig.java      API 문서 설정
-│   └── WebClientConfig.java    외부 API 호출 설정
+recruitai/
+├── config/                  🔧 애플리케이션 설정
+│   ├── SecurityConfig.java         Spring Security & JWT 설정
+│   ├── WebConfig.java              CORS, 인터셉터 설정
+│   ├── JpaConfig.java              JPA Auditing, QueryDSL 설정
+│   ├── RedisConfig.java            Redis 연결 및 직렬화 설정
+│   └── SwaggerConfig.java          Swagger/OpenAPI 문서 설정
 │
-├── controller/          🎤 API 엔드포인트 (아직 없음, 추가 예정)
-│   └── (여기에 추가할 예정)
+├── domain/                  📦 비즈니스 도메인 (10개 도메인)
+│   │
+│   ├── auth/                🔐 인증/인가
+│   │   ├── controller/
+│   │   │   └── AuthController.java
+│   │   ├── service/
+│   │   │   ├── AuthService.java
+│   │   │   └── TokenService.java
+│   │   ├── dto/
+│   │   │   ├── request/
+│   │   │   └── response/
+│   │   └── token/
+│   │       ├── JwtProvider.java
+│   │       ├── RefreshToken.java
+│   │       └── RefreshTokenRepository.java
+│   │
+│   ├── user/                👤 사용자 (회원 정보, 설정)
+│   │   ├── controller/
+│   │   ├── service/
+│   │   ├── repository/
+│   │   ├── entity/
+│   │   └── dto/
+│   │
+│   ├── company/             🏢 기업 정보 (뉴스, 메모)
+│   │   ├── controller/
+│   │   ├── service/
+│   │   ├── repository/
+│   │   ├── entity/
+│   │   └── dto/
+│   │
+│   ├── job/                 💼 채용 공고 (북마크, Qdrant 검색)
+│   │   ├── controller/
+│   │   ├── service/
+│   │   ├── repository/
+│   │   ├── entity/
+│   │   └── dto/
+│   │
+│   ├── ai/                  🤖 AI 요청 관리 (Redis Publisher)
+│   │   ├── controller/
+│   │   ├── service/
+│   │   └── dto/
+│   │
+│   ├── dashboard/           📊 대시보드 요약 통계
+│   │   ├── controller/
+│   │   ├── service/
+│   │   └── dto/
+│   │
+│   ├── analytics/           📈 트렌드 분석
+│   │   ├── controller/
+│   │   ├── service/
+│   │   └── dto/
+│   │
+│   ├── chat/                💬 챗봇 프록시 (FastAPI로 전달)
+│   │   ├── controller/
+│   │   ├── service/
+│   │   └── dto/
+│   │
+│   ├── notification/        🔔 알림 (Slack Webhook)
+│   │   ├── controller/
+│   │   ├── service/
+│   │   ├── repository/
+│   │   ├── entity/
+│   │   └── dto/
+│   │
+│   └── workshop/            🛠️ 공고 제작소 (템플릿 관리 및 생성)
+│       ├── controller/
+│       ├── service/
+│       ├── repository/
+│       ├── entity/
+│       └── dto/
 │
-├── dto/                 📋 데이터 전송 양식
-│   ├── request/              클라이언트 → 서버
-│   │   ├── LoginRequest.java        로그인 요청
-│   │   ├── JobSearchRequest.java    공고 검색 요청
-│   │   └── ...
-│   └── response/             서버 → 클라이언트
-│       ├── ApiResponse.java         공통 응답 형식
-│       ├── JobPostResponse.java     공고 정보 응답
-│       └── ...
-│
-├── entity/              🗄️ 데이터베이스 테이블
-│   ├── JobPost.java          채용공고 테이블
-│   ├── Company.java          회사 테이블
-│   ├── User.java             사용자 테이블
-│   ├── Skill.java            스킬 테이블
-│   └── ...
-│
-├── repository/          💾 데이터 접근 계층
-│   ├── JobPostRepository.java   채용공고 DB 접근
-│   ├── CompanyRepository.java   회사 DB 접근
-│   └── ...
-│
-├── service/             🔨 비즈니스 로직
-│   ├── job/
-│   │   └── JobPostService.java   채용공고 관련 로직
-│   ├── auth/
-│   │   └── AuthService.java      인증/로그인 로직
-│   └── ...
-│
-├── exception/           ⚠️ 에러 처리
-│   ├── ErrorCode.java            에러 코드 정의
-│   ├── BusinessException.java    커스텀 예외
-│   └── GlobalExceptionHandler.java  전역 에러 핸들러
-│
-├── util/                🛠️ 유틸리티
-│   └── JwtUtil.java              JWT 토큰 생성/검증
-│
-└── DemoApplication.java  ▶️ 프로그램 시작점
+└── global/                  🌐 전역 공통 모듈
+    ├── error/               ⚠️ 예외 처리
+    │   ├── ErrorCode.java            에러 코드 enum
+    │   ├── GlobalExceptionHandler.java
+    │   ├── exception/
+    │   │   ├── BusinessException.java
+    │   │   ├── EntityNotFoundException.java
+    │   │   ├── UnauthorizedException.java
+    │   │   └── InvalidValueException.java
+    │   └── dto/
+    │       └── ErrorResponse.java
+    │
+    ├── common/              📝 공통 값 및 기본 엔티티
+    │   ├── response/
+    │   │   ├── ApiResponse.java       모든 API의 통일된 응답 포맷
+    │   │   └── PageResponse.java      페이징 응답
+    │   └── entity/
+    │       └── BaseEntity.java        생성일, 수정일 등 공통 필드
+    │
+    ├── util/                🛠️ 유틸리티 클래스
+    │   ├── JwtUtil.java              JWT 파싱 및 검증
+    │   ├── DateUtil.java             날짜 변환
+    │   ├── StringUtil.java           문자열 처리
+    │   └── EncryptionUtil.java       비밀번호 암호화
+    │
+    └── client/              🔌 Infrastructure 레이어 (외부 시스템 연동)
+        ├── fastapi/         FastAPI 서버 연동
+        │   ├── FastApiClient.java
+        │   ├── config/
+        │   └── dto/
+        └── redis/           Redis Pub/Sub
+            ├── RedisPublisher.java
+            └── RedisSubscriber.java
 ```
 
 ---
@@ -223,6 +426,41 @@ demo/
    ↓
 7. 프론트엔드가 받음
 ```
+
+### FastAPI 백엔드 구조
+
+```
+backend-ai/
+├── app/
+│   ├── main.py                   # FastAPI 앱 진입점
+│   ├── core/
+│   │   ├── config.py             # 설정 관리
+│   │   └── security.py           # 인증/보안
+│   ├── api/
+│   │   ├── v1/
+│   │   │   └── endpoints/        # API 엔드포인트
+│   │   └── deps.py               # 의존성 주입
+│   ├── models/                   # Pydantic 모델
+│   ├── schemas/                  # 요청/응답 스키마
+│   └── utils/                    # 유틸리티 함수
+│
+├── requirements.txt              # 의존성 명시
+├── .env                          # 환경 변수 (git 제외)
+└── tests/                        # 테스트 코드
+```
+
+---
+
+## 📋 주요 설정 파일 경로
+
+| 파일명 | 경로 | 설명 |
+|--------|------|------|
+| **Spring 설정** | `backend-core/src/main/resources/application.yml` | 데이터베이스, Redis, JWT 설정 |
+| **Gradle 설정** | `build.gradle` | 라이브러리 의존성 정의 |
+| **Python 설정** | `pyproject.toml` | Python 프로젝트 메타데이터 |
+| **의존성** | `backend-ai/requirements.txt` | FastAPI 의존성 |
+| **환경변수** | `.env` | 런타임 환경 변수 |
+| **Docker** | `docker-compose.yml` | 개발 환경 서비스 |
 
 ---
 
@@ -335,17 +573,30 @@ public class JobPostResponse {
 
 ## 🤝 협업 가이드
 
+### 모노레포 협업 규칙
+
+이 프로젝트는 Java와 Python 두 가지 백엔드를 포함합니다. 다음 규칙을 따르세요:
+
+- **Java 작업**: `backend-core/` 디렉토리에서만 수정
+- **Python 작업**: `backend-ai/` 디렉토리에서만 수정
+- **설정 파일**: 루트 디렉토리의 파일들 (`build.gradle`, `pyproject.toml`, `docker-compose.yml` 등)
+
 ### 작업 시작 전 (필수!)
 
 #### 1️⃣ 최신 코드 받기
+
 ```bash
 git pull origin main
 ```
 
 #### 2️⃣ 새 브랜치 만들기
+
 ```bash
-# 예: WBS 3.2.2 공고 API 개발
+# 예: WBS 3.2.2 공고 API 개발 (Java)
 git checkout -b feature/job-post-api
+
+# 예: AI 분석 엔드포인트 개발 (Python)
+git checkout -b feature/ai-analysis-api
 ```
 
 ---
@@ -554,9 +805,10 @@ git branch -d feature/job-post-api
 
 ## 🔧 문제 해결
 
-### 1. 서버가 시작되지 않아요!
+### 1. Spring Boot 서버가 시작되지 않아요!
 
 #### 증상: `Port 8080 is already in use`
+
 ```bash
 # 8080 포트 사용 중인 프로세스 찾기 (Mac/Linux)
 lsof -i :8080
@@ -571,16 +823,36 @@ taskkill /PID [PID] /F
 
 ---
 
-### 2. DB 연결 오류
+### 2. FastAPI 서버가 시작되지 않아요!
+
+#### 증상: `Port 8000 is already in use`
+
+```bash
+# 8000 포트 사용 중인 프로세스 찾기
+lsof -i :8000      # Mac/Linux
+netstat -ano | findstr :8000  # Windows
+
+# 포트 변경하여 실행
+uvicorn app.main:app --reload --port 8001
+```
+
+---
+
+### 3. DB 연결 오류
 
 #### 증상: `Access denied for user 'root'@'localhost'`
 
 **해결 방법**:
-1. `application.yml`에서 비밀번호 확인
+
+1. `.env` 파일에서 비밀번호 확인
 2. MariaDB가 실행 중인지 확인
+
 ```bash
-# MariaDB 상태 확인 (Mac)
-brew services list
+# Docker를 사용하는 경우
+docker-compose ps
+
+# MariaDB 상태 확인 (수동 설치)
+brew services list          # Mac
 
 # MariaDB 시작
 brew services start mariadb
@@ -588,11 +860,28 @@ brew services start mariadb
 
 ---
 
-### 3. 빌드 실패
+### 4. Redis 연결 오류
+
+#### 증상: `Connection refused` (포트 16379 또는 6379)
+
+**해결 방법**:
+
+```bash
+# Docker로 Redis 실행 중인지 확인
+docker-compose ps
+
+# 수동으로 Redis 시작 (또는 docker-compose 사용)
+redis-server --port 16379
+```
+
+---
+
+### 5. Java 빌드 실패
 
 #### 증상: `Compilation failed`
 
 **해결 방법**:
+
 ```bash
 # 캐시 삭제 후 재빌드
 ./gradlew clean build
@@ -604,11 +893,33 @@ brew services start mariadb
 
 ---
 
-### 4. Lombok 에러
+### 6. Python 의존성 오류
+
+#### 증상: `ModuleNotFoundError: No module named 'fastapi'`
+
+**해결 방법**:
+
+```bash
+# backend-ai 디렉토리로 이동
+cd backend-ai
+
+# 의존성 설치
+uv pip install -r requirements.txt
+# 또는
+pip install -r requirements.txt
+
+# 설치된 패키지 확인
+pip list
+```
+
+---
+
+### 7. Lombok 에러 (Java)
 
 #### 증상: `Cannot resolve symbol 'getData'`
 
 **해결 방법** (IntelliJ):
+
 1. File > Settings > Plugins
 2. "Lombok" 검색 및 설치
 3. File > Settings > Build > Compiler > Annotation Processors
@@ -617,41 +928,76 @@ brew services start mariadb
 
 ---
 
+### 8. 다양한 모듈이 있을 때 헷갈려요!
+
+#### Spring Boot 작업 vs FastAPI 작업
+
+| 작업 | 디렉토리 | 빌드 도구 |
+|------|---------|---------|
+| **Java 개발** | `backend-core/` | Gradle |
+| **Python 개발** | `backend-ai/` | pip/uv |
+| **공통 설정** | 루트 | - |
+
+각 디렉토리에서 해당 언어의 명령어만 사용하세요!
+
+---
+
 ## 📞 도움말
 
 ### 자주 묻는 질문
 
-#### Q1. Entity를 수정했는데 DB에 반영이 안 돼요!
-**A**: `application.yml`에서 `ddl-auto: update`로 설정되어 있는지 확인하세요. 또는 서버를 재시작하세요.
+#### Q1. Entity를 수정했는데 DB에 반영이 안 돼요
 
-#### Q2. API 테스트는 어떻게 하나요?
+**A**: `backend-core/src/main/resources/application.yml`에서 `ddl-auto: update`로 설정되어 있는지 확인하세요. 또는 서버를 재시작하세요.
+
+#### Q2. API 테스트는 어떻게 하나요
+
 **A**: Swagger UI 또는 Postman을 사용하세요. Swagger가 더 간편합니다.
 
-#### Q3. 다른 팀원이 만든 코드가 안 돌아가요!
+#### Q3. 다른 팀원이 만든 코드가 안 돌아가요
+
 **A**:
+
 ```bash
 # 최신 코드 받기
 git pull origin main
 
-# 의존성 다시 설치
+# Java 의존성 다시 설치
 ./gradlew clean build
+
+# Python 의존성 다시 설치
+cd backend-ai
+uv pip install -r requirements.txt
 ```
+
+#### Q4. 모노레포에서 어떤 것을 수정해야 하나요
+
+**A**: 작업 내용에 따라 수정할 디렉토리를 선택하세요:
+
+- **Java/API 개발**: `backend-core/` 수정
+- **AI/ML 개발**: `backend-ai/` 수정
+- **환경 설정**: 루트 디렉토리 파일 수정
 
 ---
 
 ## 🎓 학습 자료
 
-### 초보자를 위한 추천 자료
+### 백엔드 (Java/Spring Boot)
 
-1. **Spring Boot 공식 가이드**: https://spring.io/guides/gs/spring-boot/
-2. **JPA 기초**: https://spring.io/guides/gs/accessing-data-jpa/
-3. **REST API 이해하기**: https://www.youtube.com/watch?v=iOueE9AXDQQ
+- [Spring Boot 공식 가이드](https://spring.io/guides/gs/spring-boot/)
+- [JPA 기초](https://spring.io/guides/gs/accessing-data-jpa/)
+- [REST API 설계 원칙](https://restfulapi.net/)
+
+### AI 분석 서버 (Python/FastAPI)
+
+- [FastAPI 공식 문서](https://fastapi.tiangolo.com/)
+- [Pydantic 데이터 검증](https://docs.pydantic.dev/)
 
 ---
 
 ## 🤝 기여하기
 
-1. 이슈 확인: https://github.com/SKALA-SKouter/SKouter-backend/issues
+1. 이슈 확인: [GitHub Issues](https://github.com/SKALA-SKouter/SKouter-backend/issues)
 2. 브랜치 생성: `git checkout -b feature/작업명`
 3. 작업 후 커밋: `git commit -m "feat: 작업 내용"`
 4. PR 생성 및 리뷰 요청
@@ -675,9 +1021,9 @@ git pull origin main
 
 ## 📌 관련 레포지토리
 
-- 프론트엔드: https://github.com/SKALA-SKouter/SKouter-frontend
-- AI Agent: https://github.com/SKALA-SKouter/SKouter-AI-Agent
+- [프론트엔드](https://github.com/SKALA-SKouter/SKouter-frontend)
+- [AI Agent](https://github.com/SKALA-SKouter/SKouter-AI-Agent)
 
 ---
 
-**마지막 업데이트**: 2025-11-20
+**마지막 업데이트**: 2025-11-23

@@ -1,0 +1,102 @@
+# Spring Boot 애플리케이션 설정
+spring:
+  application:
+    name: SKouter Backend
+
+  # JPA/Hibernate 설정
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+    open-in-view: false
+    show-sql: false
+
+  # 데이터베이스 연결
+  datasource:
+    url: jdbc:mariadb://localhost:3306/skouter
+    username: skouter
+    password: skouter123
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
+  # Redis 설정
+  redis:
+    host: localhost
+    port: 16379
+    timeout: 60000ms
+    jedis:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+  # 메시지 인코딩
+  messages:
+    encoding: UTF-8
+
+  # Jackson 설정
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      adjust-dates-to-context-timezone: false
+
+  # 서블릿 설정
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# 서버 포트
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    min-response-size: 1024
+
+# 로깅 설정
+logging:
+  level:
+    root: INFO
+    com.skouter: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# 액추에이터 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# JWT 설정
+jwt:
+  secret: TODO_SET_JWT_SECRET_KEY_HERE_AT_LEAST_256_BITS_LONG_VERY_IMPORTANT_FOR_SECURITY
+  expiration: 3600000        # 1시간 (밀리초)
+  refresh-expiration: 604800000  # 7일 (밀리초)
+
+# FastAPI 연동 설정
+fastapi:
+  base-url: http://localhost:8001
+  timeout: 30000
